@@ -14,26 +14,21 @@ static linklistT *linklist = NULL;
 
 char *linklist_add(dev_t dev_id, ino_t inode_num, char *name)
 {
-	linklistT *node;
-
-	if ( linklist != NULL ) {
-		node = linklist;
-		while ( node->next != NULL )
-			if (( node->inode_num == inode_num ) && ( node->dev_id == dev_id ))
-				return node->name;
-			else node = node->next;
-
-		node->next = (linklistT*)malloc(sizeof(linklistT));
-		node = node->next;
-	} else {
-		linklist = (linklistT*)malloc(sizeof(linklistT));
-		node = linklist;
+	linklistT *node = linklist;
+	while ( node != NULL )
+	{
+		if (( node->inode_num == inode_num ) && ( node->dev_id == dev_id ))
+			return node->name;
+		else node = node->next;
 	}
+
+	node = (linklistT*)malloc(sizeof(linklistT));
 
 	node->dev_id = dev_id;
 	node->inode_num = inode_num;
 	node->name = strdup(name);
-	node->next = NULL;
+	node->next = linklist;
+	linklist = node;
 
 	return NULL;
 }
