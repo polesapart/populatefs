@@ -29,8 +29,8 @@ EXTRAVERSION?=
 #                                                #
 ##################################################
 
-VERSION_MAJOR=0
-VERSION_MINOR=9
+VERSION_MAJOR=1
+VERSION_MINOR=0
 VERSION=$(VERSION_MAJOR).$(VERSION_MINOR)
 LIBPOPULATEFS=libpopulatefs
 LIBPOPULATEFS_DEPENDS=src/debugfs.o src/util.o src/linklist.o src/mod_file.o src/mod_path.o src/log.o
