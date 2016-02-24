@@ -388,8 +388,17 @@ int do_hardlink(struct stat *st, char *sourcename, char *name)
 	if ( type == EXT2_FT_UNKNOWN)
 		return 0;
 
-	if ( ext2fs_link(fs, dir, dest, ino, type))
+	retval = ext2fs_link(fs, dir, dest, ino, type);
+
+	if (retval == EXT2_ET_DIR_NO_SPACE) {
+		if ( ext2fs_expand_dir(fs, dir))
+			return 0;
+
+		if ( ext2fs_link(fs, dir, dest, ino, type))
+			return 0;
+	} else if (retval) {
 		return 0;
+	}
 
 	if ( ext2fs_read_inode(fs, ino, &inode))
 		return 0;
