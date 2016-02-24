@@ -74,7 +74,8 @@ void addPath(const char *path, int squash_uids, int squash_perms)
 				}
 
 				log_action(ACT_HARDLINK, file->d_name, lnk, 0, 0, 0, 0, 0, 0, overWrite);
-				do_hardlink(&st, lnk, file->d_name);
+				if (!do_hardlink(&st, lnk, file->d_name))
+					log_error("[Filesystem error] cannot hardlink %s --> %s", file->d_name, lnk);
 				continue;
 			}
 		}
