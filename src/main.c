@@ -36,6 +36,7 @@ int main(int argc, char **argv)
 
 	const char *version =
 		"populatefs %s%s\n";
+	const char *e2fsversion;
 
 	int c;
 	int sourcenum = 0;
@@ -76,6 +77,8 @@ int main(int argc, char **argv)
 			break;
 		case 'V':
 			printf(version, POPULATEFS_VERSION, POPULATEFS_EXTRAVERSION);
+			ext2fs_get_library_version(&e2fsversion, NULL);
+			printf("\tUsing EXT2FS Library version %s\n", e2fsversion);
 			exit(0);
 		default:
 			printf(usage, argv[0]);
