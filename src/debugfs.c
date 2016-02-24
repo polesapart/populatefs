@@ -139,11 +139,13 @@ int do_chown(char *name, uid_t uid, gid_t gid)
 	return ext2fs_write_inode(fs, set_ino, &set_inode) ? 0 : 1;
 }
 
-int do_mkdir(char *name)
+int do_mkdir(struct stat *st, char *name)
 {
 	char *cp = strrchr(name, '/');
 	ext2_ino_t parent = cp ? name_to_inode(name) : cwd;
 	char *newname;
+	ext2_ino_t ino;
+	struct ext2_inode inode;
 
 	if (!parent)
 		return 0;
@@ -161,7 +163,27 @@ int do_mkdir(char *name)
 				return 0;
 	}
 
-	return retval ? 0 : 1;
+	if (retval)
+		return 0;
+
+	/* Adjust the timestamps to match source */
+	if (st) {
+		ino = name_to_inode(newname);
+		if (!ino)
+			return 0;
+
+		if ( ext2fs_read_inode(fs, ino, &inode))
+			return 0;
+
+		inode.i_atime = st->st_atime;
+		inode.i_ctime = st->st_ctime;
+		inode.i_mtime = st->st_mtime;
+
+		if ( ext2fs_write_inode(fs, ino, &inode))
+			return 0;
+	}
+
+	return 1;
 }
 
 int do_chdir(char *name)
@@ -286,8 +308,9 @@ int do_write(char *local_file, char *name)
 	ext2fs_inode_alloc_stats2(fs, newfile, +1, 0);
 	memset(&inode, 0, sizeof(inode));
 	inode.i_mode = (statbuf.st_mode & ~LINUX_S_IFMT) | LINUX_S_IFREG;
-	inode.i_atime = inode.i_ctime = inode.i_mtime =
-						fs->now ? fs->now : time(0);
+	inode.i_atime = statbuf.st_atime;
+	inode.i_ctime = statbuf.st_ctime;
+	inode.i_mtime = statbuf.st_mtime;
 	inode.i_links_count = 1;
 	inode.i_size = statbuf.st_size;
 	if (fs->super->s_feature_incompat &
@@ -323,7 +346,7 @@ int do_write(char *local_file, char *name)
 	return 1;
 }
 
-int do_hardlink(char *sourcename, char *name)
+int do_hardlink(struct stat *st, char *sourcename, char *name)
 {
 	ext2_ino_t ino = name_to_inode(sourcename);
 	struct ext2_inode inode;
@@ -377,13 +400,31 @@ int do_hardlink(char *sourcename, char *name)
 			return 0;
 	}
 
+	/* Adjust the timestamps to match source */
+	if (st) {
+		ino = name_to_inode(dest);
+		if (!ino)
+			return 0;
+
+		if ( ext2fs_read_inode(fs, ino, &inode))
+			return 0;
+
+		inode.i_atime = st->st_atime;
+		inode.i_ctime = st->st_ctime;
+		inode.i_mtime = st->st_mtime;
+
+		if ( ext2fs_write_inode(fs, ino, &inode))
+			return 0;
+	}
+
 	return 1;
 }
 
-int do_symlink(char *source, char *dest)
+int do_symlink(struct stat *st, char *source, char *dest)
 {
 	char                *cp;
-	ext2_ino_t parent;
+	ext2_ino_t parent, ino;
+	struct ext2_inode inode;
 	char                *name;
 	errcode_t retval;
 
@@ -406,6 +447,23 @@ int do_symlink(char *source, char *dest)
 			if ( ext2fs_expand_dir(fs, parent))
 				return 0;
 		} else if ( retval ) return 0;
+	}
+
+	/* Adjust the timestamps to match source */
+	if (st) {
+		ino = name_to_inode(name);
+		if (!ino)
+			return 0;
+
+		if ( ext2fs_read_inode(fs, ino, &inode))
+			return 0;
+
+		inode.i_atime = st->st_atime;
+		inode.i_ctime = st->st_ctime;
+		inode.i_mtime = st->st_mtime;
+
+		if ( ext2fs_write_inode(fs, ino, &inode))
+			return 0;
 	}
 
 	return 1;

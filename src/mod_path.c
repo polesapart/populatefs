@@ -74,7 +74,7 @@ void addPath(const char *path, int squash_uids, int squash_perms)
 				}
 
 				log_action(ACT_HARDLINK, file->d_name, lnk, 0, 0, 0, 0, 0, 0, overWrite);
-				do_hardlink(lnk, file->d_name);
+				do_hardlink(&st, lnk, file->d_name);
 				continue;
 			}
 		}
@@ -99,7 +99,7 @@ void addPath(const char *path, int squash_uids, int squash_perms)
 			log_action(ACT_MKDIR, file->d_name, NULL, 0, 0, 0, 0, 0, 0, overWrite);
 
 			if ( !overWrite )
-				if ( !do_mkdir( file->d_name ))
+				if ( !do_mkdir( &st, file->d_name ))
 					log_error("[Filesystem error] cannot mkdir %s/%s", log_cwd(), file->d_name);
 
 			log_action(ACT_CHMODE, file->d_name, NULL, st.st_mode, 0, 0, 0, 0, 0, overWrite);
@@ -151,7 +151,7 @@ void addPath(const char *path, int squash_uids, int squash_perms)
 			}
 
 			log_action(ACT_SYMLINK, file->d_name, lnk, 0, 0, 0, 0, 0, 0, overWrite);
-			if ( !do_symlink(lnk, file->d_name))
+			if ( !do_symlink(&st, lnk, file->d_name))
 				log_error("[Filesystem error] cannot symlink %s/%s --> %s", log_cwd(), file->d_name, lnk);
 
 			free(lnk);

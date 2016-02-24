@@ -126,7 +126,7 @@ void addFilespec(FILE *fd, int squash_uids, int squash_perms)
 					log_action(ACT_MKDIR, dname, NULL, 0, 0, 0, 0, 0, 0, overWrite);
 
 					if ( !overWrite )
-						if ( !do_mkdir(dname))
+						if ( !do_mkdir(NULL, dname))
 							log_error("[Filesystem error] cannot mkdir %s/%s", log_cwd(), dname);
 
 					break;
@@ -205,7 +205,7 @@ void addFilespec(FILE *fd, int squash_uids, int squash_perms)
 				log_action(ACT_MKDIR, name, NULL, 0, 0, 0, 0, 0, 0, overWrite);
 
 				if ( !overWrite )
-					if ( !do_mkdir(name))
+					if ( !do_mkdir(NULL, name))
 						log_error("[Filesystem error] cannot mkdir %s/%s", log_cwd(), name);
 				break;
 

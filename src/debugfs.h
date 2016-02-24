@@ -20,11 +20,11 @@ extern __u16 ext2_fileType(__u16 mode);
 extern int do_chmode(char *name, mode_t mode);
 extern int do_chmod(char *name, unsigned long mode);
 extern int do_chown(char *name, uid_t uid, gid_t gid);
-extern int do_mkdir(char *name);
+extern int do_mkdir(struct stat *st, char *name);
 extern int do_chdir(char *name);
 extern int do_write(char *local_file, char *name);
-extern int do_hardlink(char *sourcename, char *name);
-extern int do_symlink(char *source, char *dest);
+extern int do_hardlink(struct stat *st, char *sourcename, char *name);
+extern int do_symlink(struct stat *st, char *source, char *dest);
 extern int do_mknod(char *name, int type, unsigned long major, unsigned long minor);
 extern int do_rm(char *name);
 
