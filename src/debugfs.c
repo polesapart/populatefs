@@ -633,12 +633,12 @@ int do_rm(char *name)
 	return 1;
 }
 
-int open_filesystem(char *device)
+int open_filesystem(char *device, blk64_t superblock, blk64_t blocksize)
 {
 
 	io_channel data_io = 0;
 
-	if (ext2fs_open(device, (EXT2_FLAG_SOFTSUPP_FEATURES | EXT2_FLAG_64BITS | EXT2_FLAG_RW), 0, 0, unix_io_manager, &fs)) {
+	if (ext2fs_open(device, (EXT2_FLAG_SOFTSUPP_FEATURES | EXT2_FLAG_64BITS | EXT2_FLAG_RW), superblock, blocksize, unix_io_manager, &fs)) {
 		fs = NULL;
 		return 0;
 	}

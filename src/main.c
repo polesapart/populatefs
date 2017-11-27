@@ -25,6 +25,8 @@ int main(int argc, char **argv)
 		"Manipulate disk image from directories/files\r\n\n"
 		" -d <directory>   Add the given directory and contents at a particular path to root\r\n"
 		" -D <file>        Add device nodes and directories from filespec\r\n"
+		" -b <bytesize>    Override autodetection of the filesytem block size, in bytes\r\n"
+		" -s <blocknum>    Specify the location of the ext superblock (default = 1)\r\n"
 		" -U               Squash owners making all files be owner by root:root\r\n"
 		" -P               Squash permissions on all files\r\n"
 		" -q               Same as \"-U -P\"\r\n"
@@ -45,11 +47,28 @@ int main(int argc, char **argv)
 	int squash_uids = 0;
 	int squash_perms = 0;
 	int firstRun = 1;
+	blk64_t superblock = 1;
+	blk64_t blocksize = 0;
+	char	*tmp;
 
 	setLoggingLevel(LOG_OFF);
 
-	while ((c = getopt(argc, argv, "d:D:UPqVvw")) != EOF) {
+	while ((c = getopt(argc, argv, "d:D:b:s:UPqVvw")) != EOF) {
 		switch (c) {
+		case 'b':
+			blocksize = strtoul(optarg, &tmp, 0);
+			if (*tmp) {
+				log_error("Bad block size - %s", optarg);
+				exit(1);
+			}
+			break;
+		case 's':
+			superblock = strtoul(optarg, &tmp, 0);
+			if (*tmp) {
+				log_error("Bad superblock number - %s", optarg);
+				exit(1);
+			}
+			break;
 		case 'd':
 		case 'D':
 			source[sourcenum] = optarg;
@@ -97,7 +116,7 @@ int main(int argc, char **argv)
 	if ( !fs_isClosed())
 		log_error("[Filesystem error] Filesystem image %s already open.", argv[optind]);
 
-	if ( !open_filesystem(argv[optind]))
+	if ( !open_filesystem(argv[optind], superblock, blocksize) )
 		log_error("[Filesystem error] %s cannot be opened.", argv[optind]);
 
 	if ( !fs_isReadWrite())

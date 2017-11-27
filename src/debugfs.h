@@ -7,7 +7,8 @@
 #define IO_BUFSIZE 64 * 1024
 #endif
 
-extern int open_filesystem(char *device);
+extern int open_filesystem(char *device, blk64_t superblock, blk64_t blocksize);
+
 extern int close_filesystem(void);
 extern int fs_isClosed(void);
 extern int fs_isReadWrite(void);
