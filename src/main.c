@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 {
 
 	const char *usage =
-		"Usage: %s [options] image\r\n"
+		"Usage: %s [options] (image | diskimage?offset=<starting-byte-of-ext4-partition>)\r\n"
 		"Manipulate disk image from directories/files\r\n\n"
 		" -d <directory>   Add the given directory and contents at a particular path to root\r\n"
 		" -D <file>        Add device nodes and directories from filespec\r\n"
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	int firstRun = 1;
 	blk64_t superblock = 1;
 	blk64_t blocksize = 0;
-	char	*tmp;
+	char	*tmp, *io_options;
 
 	setLoggingLevel(LOG_OFF);
 
@@ -113,10 +113,18 @@ int main(int argc, char **argv)
 	if ( logLevel())
 		printf(version, POPULATEFS_VERSION, POPULATEFS_EXTRAVERSION);
 
+	io_options = strchr(argv[optind], '?');
+	// some.file?offset=BYTENUM
+	//   https://github.com/tytso/e2fsprogs/commit/2e8ca9a26b0bd7dae546a3f9a98df67b043fe3be
+	// Its possible to have real file names with '?' in them ...
+	//  could statfs(optarg), if ENOFILE, then mark io_options
+	if (io_options)
+		*io_options++ = 0;
+
 	if ( !fs_isClosed())
 		log_error("[Filesystem error] Filesystem image %s already open.", argv[optind]);
 
-	if ( !open_filesystem(argv[optind], superblock, blocksize) )
+	if ( !open_filesystem(argv[optind], io_options, superblock, blocksize) )
 		log_error("[Filesystem error] %s cannot be opened.", argv[optind]);
 
 	if ( !fs_isReadWrite())
