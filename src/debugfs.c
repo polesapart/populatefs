@@ -337,6 +337,11 @@ int do_write(char *local_file, char *name)
 			make_holes = 1;
 			bufsize = statbuf.st_blksize;
 		}
+
+	// https://lwn.net/Articles/659523/#CommAnchor660447
+	//    http://man7.org/linux/man-pages/man2/copy_file_range.2.html
+	//  if( !copy_file_range(fd, 0, fs.fd, newfile.fs_offset, bufsize, 0)
+
 		if ( !copy_file(fd, newfile, bufsize, make_holes)) {
 			close(fd);
 			return 0;

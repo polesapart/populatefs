@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/sysmacros.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <ext2fs/ext2fs.h>
@@ -19,7 +20,7 @@ void modPath_set_pathLen(int pathLen)
 	modPath_path_len = pathLen;
 }
 
-void addPath(const char *path, int squash_uids, int squash_perms)
+void addPath(const char *path, int squash_uids, int squash_perms, int shift_uids)
 {
 	size_t len;
 	char *full_name = NULL, *lnk = NULL;
@@ -55,6 +56,11 @@ void addPath(const char *path, int squash_uids, int squash_perms)
 
 		lstat(full_name, &st);
 		mode_t fmt = st.st_mode & S_IFMT;
+
+		if ( st.st_uid >= shift_uids )
+			st.st_uid -= shift_uids;
+		if ( st.st_gid >= shift_uids )
+			st.st_gid -= shift_uids;
 
 		if ( squash_uids )
 			st.st_uid = st.st_gid = 0;
@@ -114,7 +120,7 @@ void addPath(const char *path, int squash_uids, int squash_perms)
 			if ( !do_chdir( file->d_name ))
 				log_error("[Filesystem error] cannot chdir to newly created %s/%s", log_cwd(), file->d_name);
 
-			addPath(full_name, squash_uids, squash_perms);
+			addPath(full_name, squash_uids, squash_perms, shift_uids);
 
 			log_action(ACT_CHDIR, "..", NULL, 0, 0, 0, 0, 0, 0, 0);
 			if ( !do_chdir(".."))

@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 
 	const char *usage =
 		"Usage: %s [options] (image | diskimage?offset=<starting-byte-of-ext4-partition>)\r\n"
-		"Manipulate disk image from directories/files\r\n\n"
+		"Manipulate ext2/3/4 disk images from directories/files\r\n\n"
 		" -d <directory>   Add the given directory and contents at a particular path to root\r\n"
 		" -D <file>        Add device nodes and directories from filespec\r\n"
 		" -b <bytesize>    Override autodetection of the filesytem block size, in bytes\r\n"
@@ -30,6 +30,7 @@ int main(int argc, char **argv)
 		" -U               Squash owners making all files be owner by root:root\r\n"
 		" -P               Squash permissions on all files\r\n"
 		" -q               Same as \"-U -P\"\r\n"
+		" -S <number>      Shift UIDs & GIDs by decrementing S-many from source value\r\n"
 		" -h               Display this usage guide\r\n"
 		" -V               Show version\r\n"
 		" -v               Be verbose\r\n"
@@ -46,6 +47,7 @@ int main(int argc, char **argv)
 	FILE *fd;
 	int squash_uids = 0;
 	int squash_perms = 0;
+	int shift_uids = 0;
 	int firstRun = 1;
 	blk64_t superblock = 1;
 	blk64_t blocksize = 0;
@@ -53,7 +55,7 @@ int main(int argc, char **argv)
 
 	setLoggingLevel(LOG_OFF);
 
-	while ((c = getopt(argc, argv, "d:D:b:s:UPqVvw")) != EOF) {
+	while ((c = getopt(argc, argv, "d:D:b:s:S:UPqVvw")) != EOF) {
 		switch (c) {
 		case 'b':
 			blocksize = strtoul(optarg, &tmp, 0);
@@ -87,6 +89,13 @@ int main(int argc, char **argv)
 			break;
 		case 'q':
 			squash_uids = squash_perms = 1;
+			break;
+		case 'S':
+			shift_uids = strtol(optarg, &tmp, 0);
+			if (*tmp) {
+				log_error("Bad shift number - %s", optarg);
+				exit(1);
+			}
 			break;
 		case 'v':
 			setLoggingLevel(LOG_ON);
@@ -134,6 +143,9 @@ int main(int argc, char **argv)
 		struct stat st;
 		stat(source[c], &st);
 
+		st.st_uid -= shift_uids;
+		st.st_gid -= shift_uids;
+
 		if (( st.st_mode & S_IFMT ) == S_IFREG )
 			printf("Populating filesystem from filespec (%s)\r\n", source[c]);
 		else if (( st.st_mode & S_IFMT ) == S_IFDIR )
@@ -157,7 +169,7 @@ int main(int argc, char **argv)
 			break;
 		case S_IFDIR:
 			modPath_set_pathLen(strlen(source[c]));
-			addPath(source[c], squash_uids, squash_perms);
+			addPath(source[c], squash_uids, squash_perms, shift_uids);
 			linklist_release();
 			break;
 		}
