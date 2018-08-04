@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 
 	const char *usage =
 		"Usage: %s [options] (image | diskimage?offset=<starting-byte-of-ext4-partition>)\r\n"
-		"Manipulate ext2/3/4 disk images from directories/files\r\n\n"
+		"Manipulate ext4 disk images from directories/files\r\n\n"
 		" -d <directory>   Add the given directory and contents at a particular path to root\r\n"
 		" -D <file>        Add device nodes and directories from filespec\r\n"
 		" -b <bytesize>    Override autodetection of the filesytem block size, in bytes\r\n"
